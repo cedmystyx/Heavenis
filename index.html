@@ -2,85 +2,364 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>Heavenis</title>
-
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Heavenis — Connexion</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
-body {
-  margin: 0;
-  font-family: Arial;
-  background: linear-gradient(135deg, #0f0f0f, #1a1a2e);
-  color: white;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-}
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-/* LOGIN BOX */
-#authBox {
-  background: rgba(255,255,255,0.05);
-  padding: 30px;
-  border-radius: 15px;
-  backdrop-filter: blur(10px);
-  text-align: center;
-  width: 300px;
-}
+  :root {
+    --gold: #c9a84c;
+    --gold-light: #f0d080;
+    --gold-dim: rgba(201,168,76,0.15);
+    --bg: #080b12;
+    --bg2: #0d1220;
+    --bg3: #111827;
+    --text: #e8eaf0;
+    --muted: #6b7280;
+    --border: rgba(255,255,255,0.07);
+    --border-focus: rgba(201,168,76,0.5);
+    --danger: #e05353;
+    --danger-dim: rgba(224,83,83,0.12);
+    --success: #4ade80;
+    --success-dim: rgba(74,222,128,0.12);
+  }
 
-input {
-  width: 90%;
-  padding: 10px;
-  margin: 10px 0;
-  border-radius: 8px;
-  border: none;
-}
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
 
-button {
-  padding: 10px;
-  margin: 5px;
-  border: none;
-  border-radius: 8px;
-  background: #4e9eff;
-  color: white;
-  cursor: pointer;
-}
+  /* ── BACKGROUND ── */
+  .bg-layer {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .bg-layer::before {
+    content: '';
+    position: absolute;
+    top: -30%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 700px;
+    height: 700px;
+    background: radial-gradient(circle, rgba(201,168,76,0.07) 0%, transparent 65%);
+    animation: pulse 7s ease-in-out infinite alternate;
+  }
+  .bg-layer::after {
+    content: '';
+    position: absolute;
+    bottom: -20%;
+    left: 20%;
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(circle, rgba(78,158,255,0.05) 0%, transparent 65%);
+    animation: pulse 9s ease-in-out infinite alternate-reverse;
+  }
+  @keyframes pulse {
+    from { transform: translateX(-50%) scale(1); opacity: 0.7; }
+    to   { transform: translateX(-50%) scale(1.2); opacity: 1; }
+  }
 
-button:hover {
-  background: #367be2;
-}
+  /* ── CARD ── */
+  .card {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 400px;
+    margin: 24px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 40px 36px;
+    animation: fade-up 0.5s ease both;
+  }
+  @keyframes fade-up {
+    from { opacity: 0; transform: translateY(24px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 20%; right: 20%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(201,168,76,0.5), transparent);
+    border-radius: 1px;
+  }
 
-/* LOADING */
-#loading {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: black;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: 28px;
-  opacity: 0;
-  pointer-events: none;
-  transition: 0.5s;
-}
+  /* ── HEADER ── */
+  .card-header {
+    text-align: center;
+    margin-bottom: 32px;
+  }
+  .logo {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+    background: var(--gold-dim);
+    border: 1px solid rgba(201,168,76,0.25);
+    font-size: 24px;
+    margin-bottom: 16px;
+  }
+  .card-header h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.6rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, var(--gold), var(--gold-light));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 6px;
+  }
+  .card-header p {
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+
+  /* ── TABS ── */
+  .tabs {
+    display: flex;
+    background: var(--bg);
+    border-radius: 10px;
+    padding: 4px;
+    margin-bottom: 28px;
+    border: 1px solid var(--border);
+  }
+  .tab {
+    flex: 1;
+    padding: 9px;
+    text-align: center;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--muted);
+    border: none;
+    background: transparent;
+    border-radius: 7px;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+  }
+  .tab.active {
+    background: var(--bg2);
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+
+  /* ── FORM ── */
+  .form-group {
+    margin-bottom: 16px;
+  }
+  label {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--muted);
+    margin-bottom: 6px;
+    letter-spacing: 0.02em;
+  }
+  input {
+    width: 100%;
+    padding: 11px 14px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  input::placeholder { color: var(--muted); }
+  input:focus {
+    border-color: var(--border-focus);
+    box-shadow: 0 0 0 3px rgba(201,168,76,0.08);
+  }
+  input.error {
+    border-color: rgba(224,83,83,0.5);
+    box-shadow: 0 0 0 3px rgba(224,83,83,0.08);
+  }
+
+  /* ── ALERT ── */
+  .alert {
+    display: none;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px 14px;
+    border-radius: 9px;
+    font-size: 0.82rem;
+    line-height: 1.5;
+    margin-bottom: 20px;
+    animation: fade-up 0.3s ease both;
+  }
+  .alert.show { display: flex; }
+  .alert.danger {
+    background: var(--danger-dim);
+    border: 1px solid rgba(224,83,83,0.25);
+    color: #f87171;
+  }
+  .alert.success {
+    background: var(--success-dim);
+    border: 1px solid rgba(74,222,128,0.25);
+    color: var(--success);
+  }
+  .alert-icon { font-size: 15px; flex-shrink: 0; margin-top: 1px; }
+
+  /* ── BUTTON ── */
+  .btn-primary {
+    width: 100%;
+    padding: 12px;
+    background: linear-gradient(135deg, #b8952e, var(--gold));
+    border: none;
+    border-radius: 10px;
+    color: #0d0a00;
+    font-family: 'Syne', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 8px;
+  }
+  .btn-primary:hover:not(:disabled) { opacity: 0.9; transform: translateY(-1px); }
+  .btn-primary:active:not(:disabled) { transform: translateY(0); }
+  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  /* ── SPINNER ── */
+  .spinner {
+    display: none;
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(0,0,0,0.3);
+    border-top-color: #0d0a00;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── FOOTER ── */
+  .card-footer {
+    text-align: center;
+    margin-top: 24px;
+    font-size: 0.78rem;
+    color: var(--muted);
+  }
+
+  /* ── LOADING OVERLAY ── */
+  #loadingOverlay {
+    position: fixed;
+    inset: 0;
+    z-index: 999;
+    background: var(--bg);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.4s;
+  }
+  #loadingOverlay.show { opacity: 1; pointer-events: all; }
+  .loader-logo {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.6rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--gold), var(--gold-light));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .loader-bar-track {
+    width: 200px;
+    height: 2px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .loader-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--gold), var(--gold-light));
+    border-radius: 2px;
+    width: 0%;
+    transition: width 1s ease;
+  }
+  .loader-msg {
+    font-size: 0.82rem;
+    color: var(--muted);
+    min-height: 20px;
+    transition: opacity 0.3s;
+  }
 </style>
 </head>
-
 <body>
 
-<div id="authBox">
-  <h2>🔥 Heavenis</h2>
-  <input id="email" placeholder="Email">
-  <input id="password" type="password" placeholder="Mot de passe">
+<div class="bg-layer"></div>
 
-  <button onclick="register()">Register</button>
-  <button onclick="login()">Login</button>
+<div class="card">
+  <div class="card-header">
+    <div class="logo">✦</div>
+    <h1>Heavenis</h1>
+    <p>Connecte-toi pour accéder à ta plateforme</p>
+  </div>
 
-  <p id="status">❌ Non connecté</p>
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab active" id="tabLogin" onclick="switchTab('login')">Connexion</button>
+    <button class="tab" id="tabRegister" onclick="switchTab('register')">Inscription</button>
+  </div>
+
+  <!-- ALERT -->
+  <div class="alert" id="alert">
+    <span class="alert-icon" id="alertIcon"></span>
+    <span id="alertMsg"></span>
+  </div>
+
+  <!-- FORM -->
+  <div class="form-group">
+    <label for="email">Adresse e-mail</label>
+    <input type="email" id="email" placeholder="toi@exemple.com" autocomplete="email">
+  </div>
+  <div class="form-group">
+    <label for="password">Mot de passe</label>
+    <input type="password" id="password" placeholder="••••••••" autocomplete="current-password">
+  </div>
+
+  <button class="btn-primary" id="submitBtn" onclick="handleSubmit()">
+    <div class="spinner" id="spinner"></div>
+    <span id="btnLabel">Se connecter</span>
+  </button>
+
+  <div class="card-footer">
+    Heavenis &copy; 2025 — Beta
+  </div>
 </div>
 
-<div id="loading">⚡ Connexion...</div>
+<!-- LOADING OVERLAY -->
+<div id="loadingOverlay">
+  <div class="loader-logo">✦ Heavenis</div>
+  <div class="loader-bar-track">
+    <div class="loader-bar-fill" id="loaderBar"></div>
+  </div>
+  <div class="loader-msg" id="loaderMsg">Connexion…</div>
+</div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
@@ -103,57 +382,137 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 
-const status = document.getElementById("status");
-const loading = document.getElementById("loading");
-const authBox = document.getElementById("authBox");
+let currentTab = 'login';
+let isLoading = false;
 
-// REGISTER
-window.register = async () => {
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
-  await createUserWithEmailAndPassword(auth, email, password);
+// ── TAB SWITCH ──
+window.switchTab = (tab) => {
+  currentTab = tab;
+  document.getElementById('tabLogin').classList.toggle('active', tab === 'login');
+  document.getElementById('tabRegister').classList.toggle('active', tab === 'register');
+  document.getElementById('btnLabel').textContent = tab === 'login' ? 'Se connecter' : "S'inscrire";
+  document.getElementById('password').autocomplete = tab === 'login' ? 'current-password' : 'new-password';
+  hideAlert();
+  clearErrors();
 };
 
-// LOGIN
-window.login = async () => {
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
-  await signInWithEmailAndPassword(auth, email, password);
+// ── ALERT ──
+function showAlert(msg, type = 'danger') {
+  const el = document.getElementById('alert');
+  document.getElementById('alertMsg').textContent = msg;
+  document.getElementById('alertIcon').textContent = type === 'danger' ? '⚠' : '✓';
+  el.className = `alert show ${type}`;
+}
+function hideAlert() {
+  document.getElementById('alert').classList.remove('show');
+}
+function clearErrors() {
+  document.getElementById('email').classList.remove('error');
+  document.getElementById('password').classList.remove('error');
+}
+
+// ── VALIDATION ──
+function validate(email, password) {
+  clearErrors(); hideAlert();
+  if (!email) {
+    document.getElementById('email').classList.add('error');
+    showAlert("L'adresse e-mail est requise.");
+    return false;
+  }
+  if (!email.includes('@')) {
+    document.getElementById('email').classList.add('error');
+    showAlert("L'adresse e-mail n'est pas valide.");
+    return false;
+  }
+  if (!password || password.length < 6) {
+    document.getElementById('password').classList.add('error');
+    showAlert("Le mot de passe doit contenir au moins 6 caractères.");
+    return false;
+  }
+  return true;
+}
+
+// ── FIREBASE ERROR → FR ──
+function firebaseError(code) {
+  const map = {
+    'auth/user-not-found': "Aucun compte trouvé avec cet e-mail.",
+    'auth/wrong-password': "Mot de passe incorrect.",
+    'auth/email-already-in-use': "Cet e-mail est déjà utilisé.",
+    'auth/invalid-email': "Adresse e-mail invalide.",
+    'auth/weak-password': "Mot de passe trop faible (6 caractères min).",
+    'auth/too-many-requests': "Trop de tentatives. Réessaie dans quelques minutes.",
+    'auth/network-request-failed': "Problème de connexion réseau.",
+    'auth/invalid-credential': "Identifiants incorrects. Vérifie ton e-mail et mot de passe.",
+  };
+  return map[code] || "Une erreur est survenue. Réessaie.";
+}
+
+// ── SET LOADING STATE ──
+function setLoading(state) {
+  isLoading = state;
+  const btn = document.getElementById('submitBtn');
+  const spinner = document.getElementById('spinner');
+  btn.disabled = state;
+  spinner.style.display = state ? 'block' : 'none';
+}
+
+// ── SUBMIT ──
+window.handleSubmit = async () => {
+  if (isLoading) return;
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+  if (!validate(email, password)) return;
+  setLoading(true);
+  try {
+    if (currentTab === 'login') {
+      await signInWithEmailAndPassword(auth, email, password);
+    } else {
+      await createUserWithEmailAndPassword(auth, email, password);
+    }
+  } catch (err) {
+    showAlert(firebaseError(err.code));
+    setLoading(false);
+  }
 };
 
-// AUTH STATE
+// ── ENTER KEY ──
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') window.handleSubmit();
+});
+
+// ── AUTH STATE → LOADING ANIMATION ──
 onAuthStateChanged(auth, (user) => {
   if (user) {
-    status.innerText = "✅ Connecté";
+    const overlay = document.getElementById('loadingOverlay');
+    const bar = document.getElementById('loaderBar');
+    const msg = document.getElementById('loaderMsg');
+    overlay.classList.add('show');
 
-    authBox.style.display = "none";
-    loading.style.opacity = 1;
-    loading.style.pointerEvents = "all";
-
-    const messages = [
-      "Connexion...",
-      "Chargement du profil...",
-      "Synchronisation...",
-      "Bienvenue..."
+    const steps = [
+      { text: "Vérification du compte…", progress: 25 },
+      { text: "Chargement du profil…",   progress: 55 },
+      { text: "Synchronisation…",        progress: 80 },
+      { text: "Bienvenue sur Heavenis ✦", progress: 100 },
     ];
 
     let i = 0;
-    const interval = setInterval(() => {
-      loading.innerText = "⚡ " + messages[i];
-      i++;
-      if (i >= messages.length) clearInterval(interval);
-    }, 1200);
-
-    // ⏱ 5 sec → redirection
-    setTimeout(() => {
-      window.location.href = "accueil.html";
-    }, 5000);
-
-  } else {
-    status.innerText = "❌ Non connecté";
+    function next() {
+      if (i >= steps.length) {
+        setTimeout(() => { window.location.href = "accueil.html"; }, 400);
+        return;
+      }
+      msg.style.opacity = 0;
+      setTimeout(() => {
+        msg.textContent = steps[i].text;
+        bar.style.width = steps[i].progress + '%';
+        msg.style.opacity = 1;
+        i++;
+        setTimeout(next, 900);
+      }, 250);
+    }
+    setTimeout(next, 300);
   }
 });
 </script>
-
 </body>
 </html>
