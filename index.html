@@ -24,7 +24,6 @@ body {
   backdrop-filter: blur(10px);
   text-align: center;
   width: 300px;
-  animation: fadeIn 1s ease;
 }
 
 input {
@@ -36,14 +35,13 @@ input {
 }
 
 button {
-  padding: 10px 15px;
+  padding: 10px;
   margin: 5px;
   border: none;
   border-radius: 8px;
-  cursor: pointer;
   background: #4e9eff;
   color: white;
-  transition: 0.3s;
+  cursor: pointer;
 }
 
 button:hover {
@@ -66,17 +64,6 @@ button:hover {
   pointer-events: none;
   transition: 0.5s;
 }
-
-/* HOME */
-#home {
-  display: none;
-  text-align: center;
-}
-
-@keyframes fadeIn {
-  from {opacity: 0; transform: translateY(20px);}
-  to {opacity: 1; transform: translateY(0);}
-}
 </style>
 </head>
 
@@ -95,11 +82,6 @@ button:hover {
 
 <div id="loading">⚡ Connexion...</div>
 
-<div id="home">
-  <h1>Bienvenue sur Heavenis 🚀</h1>
-  <p id="userInfo"></p>
-</div>
-
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import {
@@ -108,12 +90,6 @@ import {
   signInWithEmailAndPassword,
   onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-
-import {
-  getFirestore,
-  setDoc,
-  doc
-} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyClkb4-rehttm3TzISw-THEk_jNK_NcDOE",
@@ -126,19 +102,15 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
-const db = getFirestore(app);
 
 const status = document.getElementById("status");
 const loading = document.getElementById("loading");
 const authBox = document.getElementById("authBox");
-const home = document.getElementById("home");
-const userInfo = document.getElementById("userInfo");
 
 // REGISTER
 window.register = async () => {
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
-
   await createUserWithEmailAndPassword(auth, email, password);
 };
 
@@ -146,7 +118,6 @@ window.register = async () => {
 window.login = async () => {
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
-
   await signInWithEmailAndPassword(auth, email, password);
 };
 
@@ -173,23 +144,9 @@ onAuthStateChanged(auth, (user) => {
       if (i >= messages.length) clearInterval(interval);
     }, 1200);
 
-    // ⏱ 5 secondes
+    // ⏱ 5 sec → redirection
     setTimeout(() => {
-      loading.style.opacity = 0;
-
-      setTimeout(() => {
-        home.style.display = "block";
-        userInfo.innerText = "Connecté en tant que : " + user.email;
-      }, 500);
-
-    }, 5000);
-
-    // AUTO SAVE
-    setInterval(async () => {
-      await setDoc(doc(db, "users", user.uid), {
-        lastSeen: Date.now(),
-        score: Math.floor(Math.random() * 1000)
-      });
+      window.location.href = "accueil.html";
     }, 5000);
 
   } else {
