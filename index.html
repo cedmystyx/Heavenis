@@ -1,114 +1,194 @@
 <!DOCTYPE html>
-<html>
+<html lang="fr">
 <head>
-  <title>Heavenis Auth</title>
+<meta charset="UTF-8">
+<title>Heavenis</title>
+
+<style>
+body {
+  margin: 0;
+  font-family: Arial;
+  background: linear-gradient(135deg, #0f0f0f, #1a1a2e);
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+/* LOGIN BOX */
+#authBox {
+  background: rgba(255,255,255,0.05);
+  padding: 30px;
+  border-radius: 15px;
+  backdrop-filter: blur(10px);
+  text-align: center;
+  width: 300px;
+  animation: fadeIn 1s ease;
+}
+
+input {
+  width: 90%;
+  padding: 10px;
+  margin: 10px 0;
+  border-radius: 8px;
+  border: none;
+}
+
+button {
+  padding: 10px 15px;
+  margin: 5px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  background: #4e9eff;
+  color: white;
+  transition: 0.3s;
+}
+
+button:hover {
+  background: #367be2;
+}
+
+/* LOADING SCREEN */
+#loading {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: black;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 30px;
+  opacity: 0;
+  pointer-events: none;
+  transition: 1s;
+}
+
+/* HOME */
+#home {
+  display: none;
+  text-align: center;
+}
+
+@keyframes fadeIn {
+  from {opacity: 0; transform: translateY(20px);}
+  to {opacity: 1; transform: translateY(0);}
+}
+</style>
 </head>
+
 <body>
 
-<h1>🔥 Heavenis Account</h1>
+<div id="authBox">
+  <h2>🔥 Heavenis</h2>
+  <input id="email" placeholder="Email">
+  <input id="password" type="password" placeholder="Mot de passe">
 
-<input id="email" placeholder="Email">
-<input id="password" type="password" placeholder="Mot de passe">
+  <button onclick="register()">Register</button>
+  <button onclick="login()">Login</button>
 
-<br><br>
+  <p id="status">❌ Non connecté</p>
+</div>
 
-<button onclick="register()">S'inscrire</button>
-<button onclick="login()">Se connecter</button>
-<button onclick="logout()">Se déconnecter</button>
+<div id="loading">⚡ Connexion...</div>
 
-<br><br>
-
-<button onclick="save()">Sauvegarder score</button>
-
-<p id="status">❌ Non connecté</p>
+<div id="home">
+  <h1>Bienvenue sur Heavenis 🚀</h1>
+  <p id="userInfo"></p>
+</div>
 
 <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import {
-    getAuth,
-    createUserWithEmailAndPassword,
-    signInWithEmailAndPassword,
-    signOut,
-    onAuthStateChanged
-  } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import {
+  getAuth,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
-  import {
-    getFirestore,
-    setDoc,
-    doc,
-    getDoc
-  } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import {
+  getFirestore,
+  setDoc,
+  doc
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyClkb4-rehttm3TzISw-THEk_jNK_NcDOE",
-    authDomain: "heavenisweb-215ef.firebaseapp.com",
-    projectId: "heavenisweb-215ef",
-    storageBucket: "heavenisweb-215ef.firebasestorage.app",
-    messagingSenderId: "464797161134",
-    appId: "1:464797161134:web:56f4f650f70df5ef187f3f"
-  };
+const firebaseConfig = {
+  apiKey: "AIzaSyClkb4-rehttm3TzISw-THEk_jNK_NcDOE",
+  authDomain: "heavenisweb-215ef.firebaseapp.com",
+  projectId: "heavenisweb-215ef",
+  storageBucket: "heavenisweb-215ef.firebasestorage.app",
+  messagingSenderId: "464797161134",
+  appId: "1:464797161134:web:56f4f650f70df5ef187f3f"
+};
 
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db = getFirestore(app);
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
 
-  const status = document.getElementById("status");
+const status = document.getElementById("status");
+const loading = document.getElementById("loading");
+const authBox = document.getElementById("authBox");
+const home = document.getElementById("home");
+const userInfo = document.getElementById("userInfo");
 
-  // 🔄 Détecte si connecté
-  onAuthStateChanged(auth, async (user) => {
-    if (user) {
-      status.innerText = "✅ Connecté : " + user.email;
+// 🔐 REGISTER
+window.register = async () => {
+  const email = emailInput();
+  const password = passwordInput();
 
-      // 🔥 Charger les données automatiquement
-      const docRef = doc(db, "users", user.uid);
-      const snap = await getDoc(docRef);
+  await createUserWithEmailAndPassword(auth, email, password);
+};
 
-      if (snap.exists()) {
-        console.log("Données chargées :", snap.data());
-      } else {
-        console.log("Nouveau compte");
-      }
+// 🔐 LOGIN
+window.login = async () => {
+  const email = emailInput();
+  const password = passwordInput();
 
-    } else {
-      status.innerText = "❌ Non connecté";
-    }
-  });
+  loading.style.opacity = 1;
+  loading.style.pointerEvents = "all";
 
-  // 📝 Register
-  window.register = async () => {
-    const email = document.getElementById("email").value;
-    const password = document.getElementById("password").value;
+  await signInWithEmailAndPassword(auth, email, password);
+};
 
-    await createUserWithEmailAndPassword(auth, email, password);
-    alert("Compte créé 🔥");
-  };
+// 🔄 AUTH STATE
+onAuthStateChanged(auth, async (user) => {
+  if (user) {
+    status.innerText = "✅ Connecté";
 
-  // 🔐 Login
-  window.login = async () => {
-    const email = document.getElementById("email").value;
-    const password = document.getElementById("password").value;
+    // 🔥 Animation transition
+    setTimeout(() => {
+      authBox.style.display = "none";
+      loading.style.opacity = 0;
+      home.style.display = "block";
 
-    await signInWithEmailAndPassword(auth, email, password);
-    alert("Connecté 🔥");
-  };
+      userInfo.innerText = "Connecté en tant que : " + user.email;
+    }, 1500);
 
-  // 🚪 Logout
-  window.logout = async () => {
-    await signOut(auth);
-  };
+    // 💾 AUTO SAVE (toutes les 5 sec)
+    setInterval(async () => {
+      await setDoc(doc(db, "users", user.uid), {
+        lastSeen: Date.now(),
+        randomScore: Math.floor(Math.random() * 1000)
+      });
+      console.log("Auto-save 🔥");
+    }, 5000);
 
-  // 💾 Save auto (lié au user)
-  window.save = async () => {
-    const user = auth.currentUser;
-    if (!user) return alert("Pas connecté");
+  } else {
+    status.innerText = "❌ Non connecté";
+  }
+});
 
-    await setDoc(doc(db, "users", user.uid), {
-      score: Math.floor(Math.random() * 1000),
-      updatedAt: Date.now()
-    });
+// helpers
+function emailInput() {
+  return document.getElementById("email").value;
+}
 
-    alert("Sauvegarde OK 💾");
-  };
+function passwordInput() {
+  return document.getElementById("password").value;
+}
 </script>
 
 </body>
