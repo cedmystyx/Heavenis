@@ -1,18 +1,43 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Heavenis</title>
+  <title>Heavenis Auth</title>
 </head>
 <body>
 
-<h1>🔥 Heavenis connecté</h1>
+<h1>🔥 Heavenis Account</h1>
+
+<input id="email" placeholder="Email">
+<input id="password" type="password" placeholder="Mot de passe">
+
+<br><br>
+
+<button onclick="register()">S'inscrire</button>
 <button onclick="login()">Se connecter</button>
-<button onclick="save()">Sauvegarder</button>
+<button onclick="logout()">Se déconnecter</button>
+
+<br><br>
+
+<button onclick="save()">Sauvegarder score</button>
+
+<p id="status">❌ Non connecté</p>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-  import { getFirestore, setDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  import {
+    getAuth,
+    createUserWithEmailAndPassword,
+    signInWithEmailAndPassword,
+    signOut,
+    onAuthStateChanged
+  } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+  import {
+    getFirestore,
+    setDoc,
+    doc,
+    getDoc
+  } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyClkb4-rehttm3TzISw-THEk_jNK_NcDOE",
@@ -20,25 +45,69 @@
     projectId: "heavenisweb-215ef",
     storageBucket: "heavenisweb-215ef.firebasestorage.app",
     messagingSenderId: "464797161134",
-    appId: "1:464797161134:web:56f4f650f70df5ef187f3f",
-    measurementId: "G-9C1TQ6G6GH"
+    appId: "1:464797161134:web:56f4f650f70df5ef187f3f"
   };
 
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
   const db = getFirestore(app);
 
-  window.login = () => {
-    signInAnonymously(auth)
-      .then(() => alert("Connecté 🔥"))
-      .catch(err => console.error(err));
+  const status = document.getElementById("status");
+
+  // 🔄 Détecte si connecté
+  onAuthStateChanged(auth, async (user) => {
+    if (user) {
+      status.innerText = "✅ Connecté : " + user.email;
+
+      // 🔥 Charger les données automatiquement
+      const docRef = doc(db, "users", user.uid);
+      const snap = await getDoc(docRef);
+
+      if (snap.exists()) {
+        console.log("Données chargées :", snap.data());
+      } else {
+        console.log("Nouveau compte");
+      }
+
+    } else {
+      status.innerText = "❌ Non connecté";
+    }
+  });
+
+  // 📝 Register
+  window.register = async () => {
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
+
+    await createUserWithEmailAndPassword(auth, email, password);
+    alert("Compte créé 🔥");
   };
 
+  // 🔐 Login
+  window.login = async () => {
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
+
+    await signInWithEmailAndPassword(auth, email, password);
+    alert("Connecté 🔥");
+  };
+
+  // 🚪 Logout
+  window.logout = async () => {
+    await signOut(auth);
+  };
+
+  // 💾 Save auto (lié au user)
   window.save = async () => {
-    await setDoc(doc(db, "users", "test"), {
-      score: Math.floor(Math.random() * 1000)
+    const user = auth.currentUser;
+    if (!user) return alert("Pas connecté");
+
+    await setDoc(doc(db, "users", user.uid), {
+      score: Math.floor(Math.random() * 1000),
+      updatedAt: Date.now()
     });
-    alert("Donnée sauvegardée 💾");
+
+    alert("Sauvegarde OK 💾");
   };
 </script>
 
