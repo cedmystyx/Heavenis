@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Accueil - Heavenis</title>
+
+<style>
+body {
+  margin: 0;
+  font-family: Arial;
+  background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+  color: white;
+}
+
+/* NAVBAR */
+nav {
+  background: rgba(0,0,0,0.5);
+  padding: 15px;
+  display: flex;
+  justify-content: space-between;
+  backdrop-filter: blur(10px);
+}
+
+nav h2 {
+  margin: 0;
+}
+
+/* MAIN */
+.container {
+  padding: 40px;
+  text-align: center;
+}
+
+/* CARD */
+.card {
+  background: rgba(255,255,255,0.05);
+  padding: 25px;
+  border-radius: 15px;
+  margin: 20px auto;
+  width: 300px;
+  backdrop-filter: blur(10px);
+  transition: 0.3s;
+}
+
+.card:hover {
+  transform: scale(1.05);
+}
+
+/* BUTTON */
+button {
+  padding: 10px;
+  border: none;
+  border-radius: 8px;
+  background: #ff4e4e;
+  color: white;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #e23a3a;
+}
+</style>
+</head>
+
+<body>
+
+<nav>
+  <h2>🔥 Heavenis</h2>
+  <button onclick="logout()">Logout</button>
+</nav>
+
+<div class="container">
+  <h1>Bienvenue 🚀</h1>
+  <p id="userInfo">Chargement...</p>
+
+  <div class="card">
+    <h3>Profil</h3>
+    <p>Ton compte est actif</p>
+  </div>
+
+  <div class="card">
+    <h3>Statistiques</h3>
+    <p>Score en cours...</p>
+  </div>
+
+  <div class="card">
+    <h3>Heavenis</h3>
+    <p>Projet en développement 🔥</p>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import {
+  getAuth,
+  onAuthStateChanged,
+  signOut
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyClkb4-rehttm3TzISw-THEk_jNK_NcDOE",
+  authDomain: "heavenisweb-215ef.firebaseapp.com",
+  projectId: "heavenisweb-215ef",
+  storageBucket: "heavenisweb-215ef.firebasestorage.app",
+  messagingSenderId: "464797161134",
+  appId: "1:464797161134:web:56f4f650f70df5ef187f3f"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+
+const userInfo = document.getElementById("userInfo");
+
+// CHECK USER
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    userInfo.innerText = "Connecté en tant que : " + user.email;
+  } else {
+    window.location.href = "index.html";
+  }
+});
+
+// LOGOUT
+window.logout = async () => {
+  await signOut(auth);
+  window.location.href = "index.html";
+};
+</script>
+
+</body>
+</html>
