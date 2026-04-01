@@ -1252,5 +1252,119 @@ window.showToast = function(title, msg, icon = '✦') {
   toastTimer = setTimeout(() => toast.classList.remove('show'), 3500);
 };
 </script>
+<!-- ================= FIREBASE + LOGIQUE ================= -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { 
+  getAuth, 
+  onAuthStateChanged, 
+  signOut, 
+  updateProfile 
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+import { 
+  getStorage, 
+  ref, 
+  uploadBytes, 
+  getDownloadURL 
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
+
+// 🔥 CONFIG
+const firebaseConfig = {
+  apiKey: "AIzaSyClkb4-rehttm3TzISw-THEk_jNK_NcDOE",
+  authDomain: "heavenisweb-215ef.firebaseapp.com",
+  projectId: "heavenisweb-215ef",
+  storageBucket: "heavenisweb-215ef.firebasestorage.app",
+  messagingSenderId: "464797161134",
+  appId: "1:464797161134:web:56f4f650f70df5ef187f3f",
+  measurementId: "G-9C1TQ6G6GH"
+};
+
+// INIT
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const storage = getStorage(app);
+
+// ================= USER =================
+onAuthStateChanged(auth, (user) => {
+  if (!user) {
+    window.location.href = "index.html";
+    return;
+  }
+
+  const email = user.email || "Utilisateur";
+
+  // EMAIL
+  document.getElementById("sidebarEmail").textContent = email;
+
+  // AVATAR SIDEBAR
+  const avatar = document.getElementById("sidebarAvatar");
+
+  if (user.photoURL) {
+    avatar.innerHTML = `<img src="${user.photoURL}" style="width:100%;height:100%;border-radius:50%">`;
+  } else {
+    avatar.textContent = email[0].toUpperCase();
+  }
+});
+
+// ================= LOGOUT =================
+window.logout = () => {
+  signOut(auth).then(() => {
+    window.location.href = "index.html";
+  });
+};
+
+// ================= AVATAR UPLOAD =================
+const input = document.getElementById("avatarInput");
+
+if (input) {
+  input.addEventListener("change", async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const user = auth.currentUser;
+
+    const storageRef = ref(storage, "avatars/" + user.uid);
+
+    await uploadBytes(storageRef, file);
+    const url = await getDownloadURL(storageRef);
+
+    await updateProfile(user, {
+      photoURL: url
+    });
+
+    showToast("Succès", "Avatar mis à jour !");
+    setTimeout(() => location.reload(), 1000);
+  });
+}
+</script>
+
+<!-- ================= UI FIX ================= -->
+<script>
+// Sidebar (si pas déjà présent)
+function toggleSidebar() {
+  document.getElementById("sidebar").classList.toggle("open");
+  document.getElementById("overlay").classList.toggle("show");
+}
+
+function closeSidebar() {
+  document.getElementById("sidebar").classList.remove("open");
+  document.getElementById("overlay").classList.remove("show");
+}
+
+// Toast (manquant dans ton code)
+function showToast(title, message) {
+  const toast = document.createElement("div");
+  toast.className = "toast show";
+  toast.innerHTML = `<strong>${title}</strong> — ${message}`;
+
+  document.body.appendChild(toast);
+
+  setTimeout(() => {
+    toast.classList.remove("show");
+    setTimeout(() => toast.remove(), 300);
+  }, 2500);
+}
+</script>
 </body>
 </html>
