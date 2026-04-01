@@ -50,7 +50,7 @@ button:hover {
   background: #367be2;
 }
 
-/* LOADING SCREEN */
+/* LOADING */
 #loading {
   position: fixed;
   top: 0;
@@ -61,10 +61,10 @@ button:hover {
   display: flex;
   justify-content: center;
   align-items: center;
-  font-size: 30px;
+  font-size: 28px;
   opacity: 0;
   pointer-events: none;
-  transition: 1s;
+  transition: 0.5s;
 }
 
 /* HOME */
@@ -134,61 +134,68 @@ const authBox = document.getElementById("authBox");
 const home = document.getElementById("home");
 const userInfo = document.getElementById("userInfo");
 
-// 🔐 REGISTER
+// REGISTER
 window.register = async () => {
-  const email = emailInput();
-  const password = passwordInput();
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
 
   await createUserWithEmailAndPassword(auth, email, password);
 };
 
-// 🔐 LOGIN
+// LOGIN
 window.login = async () => {
-  const email = emailInput();
-  const password = passwordInput();
-
-  loading.style.opacity = 1;
-  loading.style.pointerEvents = "all";
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
 
   await signInWithEmailAndPassword(auth, email, password);
 };
 
-// 🔄 AUTH STATE
-onAuthStateChanged(auth, async (user) => {
+// AUTH STATE
+onAuthStateChanged(auth, (user) => {
   if (user) {
     status.innerText = "✅ Connecté";
 
-    // 🔥 Animation transition
+    authBox.style.display = "none";
+    loading.style.opacity = 1;
+    loading.style.pointerEvents = "all";
+
+    const messages = [
+      "Connexion...",
+      "Chargement du profil...",
+      "Synchronisation...",
+      "Bienvenue..."
+    ];
+
+    let i = 0;
+    const interval = setInterval(() => {
+      loading.innerText = "⚡ " + messages[i];
+      i++;
+      if (i >= messages.length) clearInterval(interval);
+    }, 1200);
+
+    // ⏱ 5 secondes
     setTimeout(() => {
-      authBox.style.display = "none";
       loading.style.opacity = 0;
-      home.style.display = "block";
 
-      userInfo.innerText = "Connecté en tant que : " + user.email;
-    }, 1500);
+      setTimeout(() => {
+        home.style.display = "block";
+        userInfo.innerText = "Connecté en tant que : " + user.email;
+      }, 500);
 
-    // 💾 AUTO SAVE (toutes les 5 sec)
+    }, 5000);
+
+    // AUTO SAVE
     setInterval(async () => {
       await setDoc(doc(db, "users", user.uid), {
         lastSeen: Date.now(),
-        randomScore: Math.floor(Math.random() * 1000)
+        score: Math.floor(Math.random() * 1000)
       });
-      console.log("Auto-save 🔥");
     }, 5000);
 
   } else {
     status.innerText = "❌ Non connecté";
   }
 });
-
-// helpers
-function emailInput() {
-  return document.getElementById("email").value;
-}
-
-function passwordInput() {
-  return document.getElementById("password").value;
-}
 </script>
 
 </body>
