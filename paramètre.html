@@ -1,0 +1,1256 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Paramètres — Heavenis</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --gold: #c9a84c;
+    --gold-light: #f0d080;
+    --gold-dim: rgba(201,168,76,0.15);
+    --bg: #080b12;
+    --bg2: #0d1220;
+    --bg3: #111827;
+    --text: #e8eaf0;
+    --muted: #6b7280;
+    --border: rgba(255,255,255,0.07);
+    --danger: #e05353;
+    --danger-dim: rgba(224,83,83,0.12);
+    --success: #4ade80;
+    --success-dim: rgba(74,222,128,0.1);
+    --info: #60a5fa;
+    --info-dim: rgba(96,165,250,0.1);
+    --sidebar-w: 260px;
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  @keyframes fade-up {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+  .bg-layer {
+    position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden;
+  }
+  .bg-layer::before {
+    content: ''; position: absolute;
+    top: -20%; left: 50%; transform: translateX(-50%);
+    width: 700px; height: 700px;
+    background: radial-gradient(circle, rgba(201,168,76,0.06) 0%, transparent 70%);
+    animation: glow 8s ease-in-out infinite alternate;
+  }
+  @keyframes glow {
+    from { opacity:0.5; transform:translateX(-50%) scale(1); }
+    to   { opacity:1;   transform:translateX(-50%) scale(1.15); }
+  }
+
+  /* ── OVERLAY ── */
+  .overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.6); z-index: 149;
+    backdrop-filter: blur(2px); opacity: 0; transition: opacity 0.3s;
+  }
+  .overlay.show { display: block; opacity: 1; }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    position: fixed; top: 0; left: 0;
+    width: var(--sidebar-w); height: 100vh;
+    background: var(--bg2); border-right: 1px solid var(--border);
+    z-index: 150; display: flex; flex-direction: column;
+    transform: translateX(-100%);
+    transition: transform 0.32s cubic-bezier(.22,.68,0,1.1);
+    overflow-y: auto;
+  }
+  .sidebar.open { transform: translateX(0); }
+  .sidebar-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 20px 20px 16px; border-bottom: 1px solid var(--border); flex-shrink: 0;
+  }
+  .sidebar-brand {
+    display: flex; align-items: center; gap: 10px;
+    font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.1rem; color: var(--gold);
+  }
+  .brand-icon {
+    width: 30px; height: 30px; border-radius: 7px;
+    background: var(--gold-dim); border: 1px solid rgba(201,168,76,0.25);
+    display: flex; align-items: center; justify-content: center; font-size: 14px;
+  }
+  .btn-close-sidebar {
+    background: none; border: none; color: var(--muted); cursor: pointer;
+    padding: 6px; border-radius: 6px; display: flex; align-items: center;
+    transition: color 0.2s, background 0.2s;
+  }
+  .btn-close-sidebar:hover { color: var(--text); background: var(--bg3); }
+  .sidebar-section-label {
+    font-size: 0.68rem; font-weight: 600; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--muted); padding: 20px 20px 8px;
+  }
+  .sidebar-nav { flex: 1; padding-bottom: 16px; }
+  .nav-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 11px 20px; font-size: 0.88rem; color: var(--muted);
+    cursor: pointer; border-left: 2px solid transparent; text-decoration: none;
+    transition: color 0.2s, background 0.2s;
+  }
+  .nav-item:hover { color: var(--text); background: rgba(255,255,255,0.04); }
+  .nav-item.active { color: var(--gold); background: var(--gold-dim); border-left-color: var(--gold); }
+  .nav-item svg { flex-shrink: 0; opacity: 0.7; }
+  .nav-item.active svg { opacity: 1; }
+  .nav-badge {
+    margin-left: auto; font-size: 0.68rem; padding: 2px 7px; border-radius: 10px;
+    background: var(--gold-dim); color: var(--gold); border: 1px solid rgba(201,168,76,0.2);
+  }
+  .sidebar-footer { padding: 16px 20px; border-top: 1px solid var(--border); flex-shrink: 0; }
+  .sidebar-user { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .user-avatar {
+    width: 34px; height: 34px; border-radius: 50%;
+    background: var(--gold-dim); border: 1px solid rgba(201,168,76,0.25);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.75rem;
+    color: var(--gold); flex-shrink: 0;
+  }
+  .user-info { overflow: hidden; }
+  .user-email { font-size: 0.75rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .user-role { font-size: 0.7rem; color: var(--gold); font-weight: 500; }
+  .btn-logout {
+    width: 100%; display: flex; align-items: center; justify-content: center; gap: 6px;
+    padding: 9px; background: transparent;
+    border: 1px solid rgba(224,83,83,0.3); color: var(--danger);
+    font-family: 'DM Sans', sans-serif; font-size: 0.82rem; font-weight: 500;
+    border-radius: 8px; cursor: pointer; transition: background 0.2s, border-color 0.2s;
+  }
+  .btn-logout:hover { background: rgba(224,83,83,0.1); border-color: rgba(224,83,83,0.55); }
+
+  /* ── TOPBAR ── */
+  .topbar {
+    position: sticky; top: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 24px; height: 60px;
+    background: rgba(8,11,18,0.88); backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+  }
+  .topbar-left { display: flex; align-items: center; gap: 14px; }
+  .btn-hamburger {
+    background: none; border: none; color: var(--text); cursor: pointer;
+    padding: 8px; border-radius: 8px; display: flex; flex-direction: column; gap: 5px;
+    transition: background 0.2s;
+  }
+  .btn-hamburger:hover { background: rgba(255,255,255,0.06); }
+  .bar { display: block; width: 22px; height: 2px; background: var(--text); border-radius: 2px; }
+  .topbar-brand { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.1rem; color: var(--gold); }
+  .topbar-breadcrumb { font-size: 0.8rem; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+  .topbar-breadcrumb span { color: var(--text); }
+
+  /* ── LAYOUT ── */
+  .page-layout {
+    position: relative; z-index: 1;
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 0;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 40px 24px 80px;
+    align-items: start;
+  }
+
+  /* ── SETTINGS NAV (left) ── */
+  .settings-nav {
+    position: sticky;
+    top: 80px;
+    padding-right: 24px;
+  }
+  .settings-nav-label {
+    font-size: 0.68rem; font-weight: 600; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--muted); margin-bottom: 8px; padding-left: 10px;
+  }
+  .settings-nav-item {
+    display: flex; align-items: center; gap: 9px;
+    padding: 9px 10px; border-radius: 8px;
+    font-size: 0.83rem; color: var(--muted);
+    cursor: pointer; text-decoration: none;
+    transition: color 0.2s, background 0.2s;
+    border-left: 2px solid transparent;
+    margin-bottom: 2px;
+  }
+  .settings-nav-item:hover { color: var(--text); background: rgba(255,255,255,0.04); }
+  .settings-nav-item.active { color: var(--gold); background: var(--gold-dim); border-left-color: var(--gold); }
+  .settings-nav-item svg { flex-shrink: 0; opacity: 0.7; }
+  .settings-nav-item.active svg { opacity: 1; }
+  .settings-nav-sep { height: 1px; background: var(--border); margin: 12px 0; }
+
+  /* ── SETTINGS CONTENT ── */
+  .settings-content { min-width: 0; }
+
+  /* ── SECTION BLOCK ── */
+  .settings-section {
+    margin-bottom: 48px;
+    animation: fade-up 0.5s ease both;
+  }
+  .settings-section:nth-child(2) { animation-delay: 0.07s; }
+  .settings-section:nth-child(3) { animation-delay: 0.14s; }
+  .settings-section:nth-child(4) { animation-delay: 0.21s; }
+  .settings-section:nth-child(5) { animation-delay: 0.28s; }
+
+  .section-header {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 4px;
+  }
+  .section-header-icon {
+    width: 34px; height: 34px; border-radius: 8px;
+    background: var(--gold-dim); border: 1px solid rgba(201,168,76,0.2);
+    display: flex; align-items: center; justify-content: center; font-size: 15px;
+  }
+  .section-title {
+    font-family: 'Syne', sans-serif; font-size: 1.05rem; font-weight: 700;
+  }
+  .section-desc { font-size: 0.82rem; color: var(--muted); margin-bottom: 18px; padding-left: 44px; }
+
+  /* ── CARD ── */
+  .settings-card {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 14px; overflow: hidden;
+  }
+
+  /* ── ROW ── */
+  .settings-row {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 16px; padding: 18px 20px;
+    border-bottom: 1px solid var(--border);
+    transition: background 0.15s;
+  }
+  .settings-row:last-child { border-bottom: none; }
+  .settings-row:hover { background: rgba(255,255,255,0.02); }
+  .row-left { flex: 1; min-width: 0; }
+  .row-label {
+    font-size: 0.88rem; font-weight: 500; color: var(--text); margin-bottom: 3px;
+  }
+  .row-desc { font-size: 0.78rem; color: var(--muted); line-height: 1.5; }
+  .row-control { flex-shrink: 0; }
+
+  /* ── TOGGLE ── */
+  .toggle {
+    position: relative; width: 44px; height: 24px;
+    cursor: pointer;
+  }
+  .toggle input { opacity: 0; width: 0; height: 0; }
+  .toggle-track {
+    position: absolute; inset: 0;
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: 12px; transition: background 0.25s, border-color 0.25s;
+  }
+  .toggle input:checked + .toggle-track {
+    background: var(--gold); border-color: var(--gold);
+  }
+  .toggle-thumb {
+    position: absolute; top: 3px; left: 3px;
+    width: 18px; height: 18px; border-radius: 50%;
+    background: var(--muted); transition: transform 0.25s, background 0.25s;
+    pointer-events: none;
+  }
+  .toggle input:checked ~ .toggle-thumb {
+    transform: translateX(20px); background: #0d0a00;
+  }
+
+  /* ── SELECT ── */
+  .settings-select {
+    background: var(--bg3); border: 1px solid var(--border);
+    color: var(--text); font-family: 'DM Sans', sans-serif;
+    font-size: 0.82rem; padding: 8px 12px;
+    border-radius: 8px; cursor: pointer; outline: none;
+    transition: border-color 0.2s;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    padding-right: 30px;
+  }
+  .settings-select:focus { border-color: var(--border-focus, rgba(201,168,76,0.4)); }
+
+  /* ── COLOR PICKER ROW ── */
+  .color-options { display: flex; gap: 8px; flex-wrap: wrap; }
+  .color-opt {
+    width: 28px; height: 28px; border-radius: 50%; cursor: pointer;
+    border: 2px solid transparent; transition: transform 0.15s, border-color 0.15s;
+    position: relative;
+  }
+  .color-opt:hover { transform: scale(1.15); }
+  .color-opt.selected { border-color: white; }
+  .color-opt.selected::after {
+    content: '✓'; position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; color: white; font-weight: 700;
+  }
+
+  /* ── SLIDER ── */
+  .settings-slider {
+    width: 140px; accent-color: var(--gold);
+    cursor: pointer;
+  }
+  .slider-val {
+    font-size: 0.78rem; color: var(--gold);
+    font-family: 'Syne', sans-serif; font-weight: 600;
+    min-width: 28px; text-align: right;
+  }
+  .slider-wrap { display: flex; align-items: center; gap: 10px; }
+
+  /* ── BADGE STATUS ── */
+  .badge {
+    font-size: 0.7rem; padding: 3px 9px; border-radius: 10px; font-weight: 600;
+  }
+  .badge-success { background: var(--success-dim); color: var(--success); border: 1px solid rgba(74,222,128,0.2); }
+  .badge-warn { background: var(--gold-dim); color: var(--gold); border: 1px solid rgba(201,168,76,0.2); }
+  .badge-danger { background: var(--danger-dim); color: var(--danger); border: 1px solid rgba(224,83,83,0.2); }
+  .badge-info { background: var(--info-dim); color: var(--info); border: 1px solid rgba(96,165,250,0.2); }
+
+  /* ── ALERT BOX ── */
+  .alert-box {
+    display: flex; gap: 12px; padding: 14px 16px;
+    border-radius: 10px; margin-bottom: 16px; font-size: 0.82rem; line-height: 1.6;
+  }
+  .alert-box.info { background: var(--info-dim); border: 1px solid rgba(96,165,250,0.2); color: #93c5fd; }
+  .alert-box.warn { background: var(--gold-dim); border: 1px solid rgba(201,168,76,0.25); color: #e5c06a; }
+  .alert-box.danger { background: var(--danger-dim); border: 1px solid rgba(224,83,83,0.25); color: #f87171; }
+  .alert-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+
+  /* ── BUTTON ── */
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 9px 16px; border-radius: 9px;
+    font-family: 'DM Sans', sans-serif; font-size: 0.82rem; font-weight: 500;
+    cursor: pointer; transition: opacity 0.2s, transform 0.15s;
+    border: 1px solid var(--border);
+  }
+  .btn:hover { opacity: 0.85; transform: translateY(-1px); }
+  .btn:active { transform: translateY(0); }
+  .btn-gold { background: linear-gradient(135deg, #b8952e, var(--gold)); color: #0d0a00; border-color: transparent; font-family: 'Syne', sans-serif; font-weight: 700; }
+  .btn-ghost { background: transparent; color: var(--text); }
+  .btn-danger { background: var(--danger-dim); color: var(--danger); border-color: rgba(224,83,83,0.3); }
+
+  /* ── ACCOUNT INFO ── */
+  .account-avatar-row {
+    display: flex; align-items: center; gap: 16px; padding: 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  .big-avatar {
+    width: 56px; height: 56px; border-radius: 50%;
+    background: var(--gold-dim); border: 2px solid rgba(201,168,76,0.3);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.2rem; color: var(--gold);
+  }
+  .account-meta h3 { font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 700; margin-bottom: 3px; }
+  .account-meta p { font-size: 0.8rem; color: var(--muted); }
+
+  /* ── DATA CONSENT ── */
+  .consent-item {
+    padding: 18px 20px; border-bottom: 1px solid var(--border);
+  }
+  .consent-item:last-child { border-bottom: none; }
+  .consent-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
+  .consent-title { font-size: 0.88rem; font-weight: 500; color: var(--text); }
+  .consent-desc { font-size: 0.78rem; color: var(--muted); line-height: 1.6; }
+  .consent-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+  .consent-tag {
+    font-size: 0.68rem; padding: 2px 8px; border-radius: 6px;
+    background: var(--bg3); border: 1px solid var(--border); color: var(--muted);
+  }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed; bottom: 24px; right: 24px; z-index: 999;
+    background: var(--bg3); border: 1px solid rgba(201,168,76,0.28);
+    border-radius: 12px; padding: 13px 18px; font-size: 0.84rem; color: var(--text);
+    display: flex; align-items: center; gap: 10px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    transform: translateY(80px); opacity: 0;
+    transition: transform 0.35s cubic-bezier(.22,.68,0,1.2), opacity 0.35s;
+    pointer-events: none;
+  }
+  .toast.show { transform: translateY(0); opacity: 1; pointer-events: auto; }
+
+  /* ── DANGER ZONE ── */
+  .danger-zone { border-color: rgba(224,83,83,0.2) !important; }
+  .danger-zone .section-header-icon { background: var(--danger-dim); border-color: rgba(224,83,83,0.2); }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 700px) {
+    .page-layout { grid-template-columns: 1fr; gap: 24px; padding: 24px 16px 60px; }
+    .settings-nav { position: static; padding-right: 0; display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+    .settings-nav-label { display: none; }
+    .settings-nav-sep { display: none; }
+    .settings-nav-item { padding: 7px 12px; border-left: none; border-bottom: 2px solid transparent; font-size: 0.8rem; }
+    .settings-nav-item.active { border-left: none; border-bottom-color: var(--gold); }
+    .topbar { padding: 0 16px; }
+    .color-options { gap: 6px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="bg-layer"></div>
+<div class="overlay" id="overlay" onclick="closeSidebar()"></div>
+
+<!-- ── SIDEBAR ── -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <div class="sidebar-brand"><div class="brand-icon">✦</div>Heavenis</div>
+    <button class="btn-close-sidebar" onclick="closeSidebar()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="sidebar-section-label">Navigation</div>
+    <a class="nav-item" href="accueil.html">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      Accueil
+    </a>
+    <a class="nav-item" href="#" onclick="showToast('Bientôt', 'Page en cours de construction.')">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      Page 1<span class="nav-badge">Bientôt</span>
+    </a>
+    <a class="nav-item" href="#" onclick="showToast('Bientôt', 'Page en cours de construction.')">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      Page 2<span class="nav-badge">Bientôt</span>
+    </a>
+    <a class="nav-item" href="#" onclick="showToast('Bientôt', 'Page en cours de construction.')">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      Page 3<span class="nav-badge">Bientôt</span>
+    </a>
+    <div class="sidebar-section-label" style="margin-top:8px;">Compte</div>
+    <a class="nav-item active" href="parametres.html">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      Paramètres
+    </a>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="sidebar-user">
+      <div class="user-avatar" id="sidebarAvatar">?</div>
+      <div class="user-info">
+        <div class="user-role">Membre Beta</div>
+        <div class="user-email" id="sidebarEmail">—</div>
+      </div>
+    </div>
+    <button class="btn-logout" onclick="logout()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      Déconnexion
+    </button>
+  </div>
+</aside>
+
+<!-- ── TOPBAR ── -->
+<header class="topbar">
+  <div class="topbar-left">
+    <button class="btn-hamburger" onclick="toggleSidebar()">
+      <span class="bar"></span><span class="bar"></span><span class="bar"></span>
+    </button>
+    <span class="topbar-brand">Heavenis</span>
+    <div class="topbar-breadcrumb">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+      <span>Paramètres</span>
+    </div>
+  </div>
+</header>
+
+<!-- ── PAGE ── -->
+<div class="page-layout">
+
+  <!-- LEFT NAV -->
+  <nav class="settings-nav">
+    <div class="settings-nav-label">Sections</div>
+    <a class="settings-nav-item active" href="#compte">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      Compte
+    </a>
+    <a class="settings-nav-item" href="#apparence">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+      Apparence
+    </a>
+    <a class="settings-nav-item" href="#notifications">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      Notifications
+    </a>
+    <a class="settings-nav-item" href="#donnees">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+      Données & IA
+    </a>
+    <a class="settings-nav-item" href="#securite">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      Sécurité
+    </a>
+    <a class="settings-nav-item" href="#accessibilite">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+      Accessibilité
+    </a>
+    <div class="settings-nav-sep"></div>
+    <a class="settings-nav-item" href="#danger" style="color:var(--danger);">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+      Zone danger
+    </a>
+  </nav>
+
+  <!-- RIGHT CONTENT -->
+  <div class="settings-content">
+
+    <!-- ══ COMPTE ══ -->
+    <div class="settings-section" id="compte">
+      <div class="section-header">
+        <div class="section-header-icon">👤</div>
+        <h2 class="section-title">Compte</h2>
+      </div>
+      <p class="section-desc">Informations liées à ton profil et ton accès à la plateforme.</p>
+      <div class="settings-card">
+        <div class="account-avatar-row">
+          <div class="big-avatar" id="pageAvatar">?</div>
+          <div class="account-meta">
+            <h3 id="pageEmail">Chargement…</h3>
+            <p>Membre Beta · Compte actif</p>
+          </div>
+          <div style="margin-left:auto;">
+            <span class="badge badge-success">✓ Vérifié</span>
+          </div>
+        </div>
+        <div class="settings-row">
+          <div class="row-left">
+            <div class="row-label">Adresse e-mail</div>
+            <div class="row-desc" id="rowEmail">—</div>
+          </div>
+          <div class="row-control">
+            <span class="badge badge-info">Firebase Auth</span>
+          </div>
+        </div>
+        <div class="settings-row">
+          <div class="row-left">
+            <div class="row-label">Identifiant unique</div>
+            <div class="row-desc" id="rowUID" style="font-family:monospace;font-size:0.74rem;">—</div>
+          </div>
+          <div class="row-control">
+            <button class="btn btn-ghost" onclick="copyUID()">Copier</button>
+          </div>
+        </div>
+        <div class="settings-row">
+          <div class="row-left">
+            <div class="row-label">Plan actuel</div>
+            <div class="row-desc">Accès Beta — Toutes les fonctionnalités de base incluses</div>
+          </div>
+          <div class="row-control">
+            <span class="badge badge-warn">Beta</span>
+          </div>
+        </div>
+        <div class="settings-row">
+          <div class="row-left">
+            <div class="row-label">Dernière connexion</div>
+            <div class="row-desc" id="rowLastSeen">—</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ APPARENCE ══ -->
+    <div class="settings-section" id="apparence">
+      <div class="section-header">
+        <div class="section-header-icon">🎨</div>
+        <h2 class="section-title">Apparence & Personnalisation</h2>
+      </div>
+      <p class="section-desc">Adapte l'interface à tes préférences visuelles.</p>
+      <div class="settings-card">
+
+        <div class="settings-row">
+          <div class="row-left">
+            <div class="row-label">Thème</div>
+            <div class="row-desc">Choisis entre le mode sombre, clair ou automatique selon ton système</div>
+          </div>
+          <div class="row-control">
+            <select class="settings-select" id="themeSelect" onchange="savePref('theme', this.value)">
+              <option value="dark" selected>🌙 Sombre</option>
+              <option value="light">☀️ Clair</option>
+              <option value="auto">⚙️ Automatique</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="settings-row">
+          <div class="row-left">
+            <div class="row-label">Couleur d'accentuation</div>
+            <div class="row-desc">Teinte principale utilisée dans les boutons, badges et highlights</div>
+          </div>
+          <div class="row-control">
+            <div class="color-options">
+              <div class="color-opt selected" style="background:#c9a84c;" data-color="gold" onclick="selectColor(this)" title="Or"></div>
+              <div class="color-opt" style="background:#60a5fa;" data-color="blue" onclick="selectColor(this)" title="Bleu"></div>
+              <div class="color-opt" style="background:#a78bfa;" data-color="purple" onclick="selectColor(this)" title="Violet"></div>
+              <div class="color-opt" style="background:#34d399;" data-color="green" onclick="selectColor(this)" title="Vert"></div>
+              <div class="color-opt" style="background:#f87171;" data-color="red" onclick="selectColor(this)" title="Rouge"></div>
+              <div class="color-opt" style="background:#fb923c;" data-color="orange" onclick="selectColor(this)" title="Orange"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-row">
+          <div class="row-left">
+            <div class="row-label">Taille de police</div>
+            <div class="row-desc">Ajuste la taille du texte dans l'interface</div>
+          </div>
+          <div class="row-control">
+            <div class="slider-wrap">
+              <input type="range" class="settings-slider" min="12" max="20" value="14" step="1"
+                oninput="document.getElementById('fontSizeVal').textContent=this.value+'px'; savePref('fontSize', this.value)">
+              <span class="slider-val" id="fontSizeVal">14px</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-row">
+          <div class="row-left">
+            <div class="row-label">Langue de l'interface</div>
+            <div class="row-desc">Langue affichée dans toute la plateforme</div>
+          </div>
+          <div class="row-control">
+            <select class="settings-select" onchange="savePref('lang', this.value)">
+              <option value="fr" selected>🇫🇷 Français</option>
+              <option value="en">🇬🇧 English</option>
+              <option value="es">🇪🇸 Español</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="settings-row">
+          <div class="row-left">
+            <div class="row-label">Animations de l'interface</div>
+            <div class="row-desc">Transitions et effets visuels dans la navigation</div>
+          </div>
+          <div class="row-control">
+            <label class="toggle">
+              <input type="checkbox" checked onchange="savePref('animations', this.checked)">
+              <div class="toggle-track"></div>
+              <div class="toggle-thumb"></div>
+            </label>
+          </div>
+        </div>
+
+        <div class="settings-row">
+          <div class="row-left">
+            <div class="row-label">Effets de survol</div>
+            <div class="row-desc">Highlight et animations sur les éléments interactifs</div>
+          </div>
+          <div class="row-control">
+            <label class="toggle">
+              <input type="checkbox" checked onchange="savePref('hoverEffects', this.checked)">
+              <div class="toggle-track"></div>
+              <div class="toggle-thumb"></div>
+            </label>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ══ NOTIFICATIONS ══ -->
+    <div class="settings-section" id="notifications">
+      <div class="section-header">
+        <div class="section-header-icon">🔔</div>
+        <h2 class="section-title">Notifications</h2>
+      </div>
+      <p class="section-desc">Choisis ce que tu souhaites recevoir et comment.</p>
+      <div class="settings-card">
+
+        <div class="settings-row">
+          <div class="row-left">
+            <div class="row-label">Notifications e-mail</div>
+            <div class="row-desc">Recevoir un e-mail pour les mises à jour importantes de la plateforme</div>
+          </div>
+          <div class="row-control">
+            <label class="toggle">
+              <input type="checkbox" checked onchange="savePref('emailNotif', this.checked)">
+              <div class="toggle-track"></div>
+              <div class="toggle-thumb"></div>
+            </label>
+          </div>
+        </div>
+
+        <div class="settings-row">
+          <div class="row-left">
+            <div class="row-label">Nouveautés & fonctionnalités</div>
+            <div class="row-desc">Être notifié lors du déploiement de nouvelles pages ou fonctions</div>
+          </div>
+          <div class="row-control">
+            <label class="toggle">
+              <input type="checkbox" checked onchange="savePref('featureNotif', this.checked)">
+              <div class="toggle-track"></div>
+              <div class="toggle-thumb"></div>
+            </label>
+          </div>
+        </div>
+
+        <div class="settings-row">
+          <div class="row-left">
+            <div class="row-label">Alertes de sécurité</div>
+            <div class="row-desc">Connexions depuis un nouvel appareil ou une nouvelle localisation</div>
+          </div>
+          <div class="row-control">
+            <label class="toggle">
+              <input type="checkbox" checked onchange="savePref('securityNotif', this.checked)">
+              <div class="toggle-track"></div>
+              <div class="toggle-thumb"></div>
+            </label>
+          </div>
+        </div>
+
+        <div class="settings-row">
+          <div class="row-left">
+            <div class="row-label">Résumé hebdomadaire</div>
+            <div class="row-desc">Un récapitulatif de ton activité chaque semaine par e-mail</div>
+          </div>
+          <div class="row-control">
+            <label class="toggle">
+              <input type="checkbox" onchange="savePref('weeklyDigest', this.checked)">
+              <div class="toggle-track"></div>
+              <div class="toggle-thumb"></div>
+            </label>
+          </div>
+        </div>
+
+        <div class="settings-row">
+          <div class="row-left">
+            <div class="row-label">Fréquence des notifications</div>
+            <div class="row-desc">À quelle fréquence recevoir les e-mails non urgents</div>
+          </div>
+          <div class="row-control">
+            <select class="settings-select" onchange="savePref('notifFreq', this.value)">
+              <option value="instant">Instantané</option>
+              <option value="daily" selected>Quotidien</option>
+              <option value="weekly">Hebdomadaire</option>
+            </select>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ══ DONNÉES & IA ══ -->
+    <div class="settings-section" id="donnees">
+      <div class="section-header">
+        <div class="section-header-icon">🧠</div>
+        <h2 class="section-title">Données & Entraînement IA</h2>
+      </div>
+      <p class="section-desc">Contrôle comment tes données sont utilisées pour améliorer l'IA Heavenis. Toutes les données sont stockées sur Firebase.</p>
+
+      <div class="alert-box info" style="margin-bottom:16px;">
+        <span class="alert-icon">ℹ</span>
+        <span>Tes consentements sont sauvegardés en temps réel dans Firebase sous ton profil utilisateur. Tu peux les modifier à tout moment.</span>
+      </div>
+
+      <div class="settings-card">
+
+        <div class="consent-item">
+          <div class="consent-header">
+            <div>
+              <div class="consent-title">Collecte des interactions</div>
+            </div>
+            <label class="toggle">
+              <input type="checkbox" checked id="c_interactions" onchange="saveConsent('interactions', this.checked)">
+              <div class="toggle-track"></div>
+              <div class="toggle-thumb"></div>
+            </label>
+          </div>
+          <div class="consent-desc">Nous collectons tes clics, navigations et actions dans l'interface pour améliorer l'expérience et entraîner le modèle IA sur les comportements utilisateurs réels.</div>
+          <div class="consent-tags">
+            <span class="consent-tag">Clics</span>
+            <span class="consent-tag">Navigation</span>
+            <span class="consent-tag">Durée de session</span>
+          </div>
+        </div>
+
+        <div class="consent-item">
+          <div class="consent-header">
+            <div><div class="consent-title">Données de progression & scores</div></div>
+            <label class="toggle">
+              <input type="checkbox" checked id="c_scores" onchange="saveConsent('scores', this.checked)">
+              <div class="toggle-track"></div>
+              <div class="toggle-thumb"></div>
+            </label>
+          </div>
+          <div class="consent-desc">Tes scores, niveaux et progressions sont enregistrés et utilisés pour personnaliser les recommandations de l'IA et adapter les contenus à ton profil.</div>
+          <div class="consent-tags">
+            <span class="consent-tag">Scores</span>
+            <span class="consent-tag">Niveaux</span>
+            <span class="consent-tag">Historique</span>
+          </div>
+        </div>
+
+        <div class="consent-item">
+          <div class="consent-header">
+            <div><div class="consent-title">Analyse des préférences</div></div>
+            <label class="toggle">
+              <input type="checkbox" checked id="c_prefs" onchange="saveConsent('prefs', this.checked)">
+              <div class="toggle-track"></div>
+              <div class="toggle-thumb"></div>
+            </label>
+          </div>
+          <div class="consent-desc">Tes paramètres (thème, langue, notifications) sont analysés pour comprendre les tendances utilisateurs et affiner les valeurs par défaut de l'IA.</div>
+          <div class="consent-tags">
+            <span class="consent-tag">Paramètres</span>
+            <span class="consent-tag">Thème choisi</span>
+            <span class="consent-tag">Langue</span>
+          </div>
+        </div>
+
+        <div class="consent-item">
+          <div class="consent-header">
+            <div><div class="consent-title">Partage anonymisé inter-utilisateurs</div></div>
+            <label class="toggle">
+              <input type="checkbox" id="c_anon" onchange="saveConsent('anonymous', this.checked)">
+              <div class="toggle-track"></div>
+              <div class="toggle-thumb"></div>
+            </label>
+          </div>
+          <div class="consent-desc">Tes données anonymisées sont agrégées avec celles d'autres utilisateurs pour construire des jeux de données d'entraînement collectifs. Aucune donnée personnelle identifiable n'est partagée.</div>
+          <div class="consent-tags">
+            <span class="consent-tag">Anonymisé</span>
+            <span class="consent-tag">Agrégé</span>
+            <span class="consent-tag">Non identifiable</span>
+          </div>
+        </div>
+
+        <div class="consent-item">
+          <div class="consent-header">
+            <div><div class="consent-title">Amélioration des suggestions IA</div></div>
+            <label class="toggle">
+              <input type="checkbox" checked id="c_suggestions" onchange="saveConsent('suggestions', this.checked)">
+              <div class="toggle-track"></div>
+              <div class="toggle-thumb"></div>
+            </label>
+          </div>
+          <div class="consent-desc">Le modèle IA utilise ton historique pour affiner ses suggestions et t'offrir une expérience de plus en plus personnalisée au fil du temps.</div>
+          <div class="consent-tags">
+            <span class="consent-tag">Personnalisation</span>
+            <span class="consent-tag">Modèle IA</span>
+            <span class="consent-tag">Temps réel</span>
+          </div>
+        </div>
+
+        <div class="settings-row" style="background:var(--bg3);">
+          <div class="row-left">
+            <div class="row-label">Exporter mes données</div>
+            <div class="row-desc">Télécharge toutes tes données stockées sur Firebase au format JSON</div>
+          </div>
+          <div class="row-control">
+            <button class="btn btn-ghost" onclick="exportData()">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Exporter
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ══ SÉCURITÉ ══ -->
+    <div class="settings-section" id="securite">
+      <div class="section-header">
+        <div class="section-header-icon">🔒</div>
+        <h2 class="section-title">Sécurité & Accès</h2>
+      </div>
+      <p class="section-desc">Gère la sécurité de ton compte et tes sessions actives.</p>
+      <div class="settings-card">
+
+        <div class="settings-row">
+          <div class="row-left">
+            <div class="row-label">Mot de passe</div>
+            <div class="row-desc">Géré via Firebase Authentication — réinitialisation par e-mail</div>
+          </div>
+          <div class="row-control">
+            <button class="btn btn-ghost" onclick="resetPassword()">Réinitialiser</button>
+          </div>
+        </div>
+
+        <div class="settings-row">
+          <div class="row-left">
+            <div class="row-label">Double authentification (2FA)</div>
+            <div class="row-desc">Ajoute une couche de sécurité supplémentaire à ta connexion</div>
+          </div>
+          <div class="row-control">
+            <span class="badge badge-warn">Bientôt</span>
+          </div>
+        </div>
+
+        <div class="settings-row">
+          <div class="row-left">
+            <div class="row-label">Sessions actives</div>
+            <div class="row-desc">Voir et révoquer les appareils connectés à ton compte</div>
+          </div>
+          <div class="row-control">
+            <span class="badge badge-warn">Bientôt</span>
+          </div>
+        </div>
+
+        <div class="settings-row">
+          <div class="row-left">
+            <div class="row-label">Journal de connexions</div>
+            <div class="row-desc">Historique des accès récents à ton compte</div>
+          </div>
+          <div class="row-control">
+            <span class="badge badge-warn">Bientôt</span>
+          </div>
+        </div>
+
+        <div class="settings-row">
+          <div class="row-left">
+            <div class="row-label">Déconnexion de tous les appareils</div>
+            <div class="row-desc">Ferme toutes les sessions ouvertes immédiatement</div>
+          </div>
+          <div class="row-control">
+            <button class="btn btn-danger" onclick="logoutAll()">Déconnecter tout</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ══ ACCESSIBILITÉ ══ -->
+    <div class="settings-section" id="accessibilite">
+      <div class="section-header">
+        <div class="section-header-icon">♿</div>
+        <h2 class="section-title">Accessibilité</h2>
+      </div>
+      <p class="section-desc">Adapte l'interface pour une meilleure expérience selon tes besoins.</p>
+      <div class="settings-card">
+
+        <div class="settings-row">
+          <div class="row-left">
+            <div class="row-label">Réduire les animations</div>
+            <div class="row-desc">Désactive les transitions et effets pour réduire les distractions ou les nausées</div>
+          </div>
+          <div class="row-control">
+            <label class="toggle">
+              <input type="checkbox" onchange="savePref('reduceMotion', this.checked)">
+              <div class="toggle-track"></div>
+              <div class="toggle-thumb"></div>
+            </label>
+          </div>
+        </div>
+
+        <div class="settings-row">
+          <div class="row-left">
+            <div class="row-label">Mode contraste élevé</div>
+            <div class="row-desc">Augmente le contraste des textes et des bordures pour une meilleure lisibilité</div>
+          </div>
+          <div class="row-control">
+            <label class="toggle">
+              <input type="checkbox" onchange="savePref('highContrast', this.checked)">
+              <div class="toggle-track"></div>
+              <div class="toggle-thumb"></div>
+            </label>
+          </div>
+        </div>
+
+        <div class="settings-row">
+          <div class="row-left">
+            <div class="row-label">Navigation au clavier</div>
+            <div class="row-desc">Affiche les indicateurs de focus pour la navigation clavier uniquement</div>
+          </div>
+          <div class="row-control">
+            <label class="toggle">
+              <input type="checkbox" checked onchange="savePref('keyboardNav', this.checked)">
+              <div class="toggle-track"></div>
+              <div class="toggle-thumb"></div>
+            </label>
+          </div>
+        </div>
+
+        <div class="settings-row">
+          <div class="row-left">
+            <div class="row-label">Taille des zones cliquables</div>
+            <div class="row-desc">Agrandit les boutons et zones tactiles pour faciliter l'utilisation</div>
+          </div>
+          <div class="row-control">
+            <select class="settings-select" onchange="savePref('clickSize', this.value)">
+              <option value="normal" selected>Normal</option>
+              <option value="large">Grand</option>
+              <option value="xl">Très grand</option>
+            </select>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ══ ZONE DANGER ══ -->
+    <div class="settings-section danger-zone" id="danger">
+      <div class="section-header">
+        <div class="section-header-icon" style="background:var(--danger-dim);border-color:rgba(224,83,83,0.2);">⚠</div>
+        <h2 class="section-title" style="color:var(--danger);">Zone de danger</h2>
+      </div>
+      <p class="section-desc">Ces actions sont irréversibles. Procède avec précaution.</p>
+
+      <div class="alert-box danger" style="margin-bottom:16px;">
+        <span class="alert-icon">⚠</span>
+        <span>Les actions ci-dessous sont permanentes et ne peuvent pas être annulées. Assure-toi de bien comprendre ce que tu fais.</span>
+      </div>
+
+      <div class="settings-card" style="border-color:rgba(224,83,83,0.2);">
+
+        <div class="settings-row">
+          <div class="row-left">
+            <div class="row-label">Réinitialiser les préférences</div>
+            <div class="row-desc">Remet tous les paramètres d'apparence et de notifications à leurs valeurs par défaut</div>
+          </div>
+          <div class="row-control">
+            <button class="btn btn-danger" onclick="confirmReset()">Réinitialiser</button>
+          </div>
+        </div>
+
+        <div class="settings-row">
+          <div class="row-left">
+            <div class="row-label">Supprimer mes données d'entraînement IA</div>
+            <div class="row-desc">Efface toutes tes données collectées pour l'IA depuis Firebase. Cette action est définitive.</div>
+          </div>
+          <div class="row-control">
+            <button class="btn btn-danger" onclick="deleteAIData()">Supprimer</button>
+          </div>
+        </div>
+
+        <div class="settings-row">
+          <div class="row-left">
+            <div class="row-label" style="color:var(--danger);">Supprimer mon compte</div>
+            <div class="row-desc">Supprime définitivement ton compte, tes données et ton accès à Heavenis</div>
+          </div>
+          <div class="row-control">
+            <button class="btn btn-danger" onclick="confirmDeleteAccount()">Supprimer le compte</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+  <span id="toastIcon">✦</span>
+  <div>
+    <strong id="toastTitle"></strong>
+    <div id="toastMsg" style="color:var(--muted);font-size:0.79rem;margin-top:2px;"></div>
+  </div>
+</div>
+
+<!-- ── FIREBASE ── -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import {
+  getAuth, onAuthStateChanged, signOut, sendPasswordResetEmail, deleteUser
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import {
+  getFirestore, doc, setDoc, getDoc, deleteDoc
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyClkb4-rehttm3TzISw-THEk_jNK_NcDOE",
+  authDomain: "heavenisweb-215ef.firebaseapp.com",
+  projectId: "heavenisweb-215ef",
+  storageBucket: "heavenisweb-215ef.firebasestorage.app",
+  messagingSenderId: "464797161134",
+  appId: "1:464797161134:web:56f4f650f70df5ef187f3f"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+let currentUser = null;
+
+onAuthStateChanged(auth, async (user) => {
+  if (!user) { window.location.href = "index.html"; return; }
+  currentUser = user;
+  const email = user.email;
+  const initials = email.slice(0,2).toUpperCase();
+  const now = new Date().toLocaleString('fr-FR', {dateStyle:'short', timeStyle:'short'});
+
+  document.getElementById("sidebarAvatar").textContent = initials;
+  document.getElementById("sidebarEmail").textContent = email;
+  document.getElementById("pageAvatar").textContent = initials;
+  document.getElementById("pageEmail").textContent = email;
+  document.getElementById("rowEmail").textContent = email;
+  document.getElementById("rowUID").textContent = user.uid;
+  document.getElementById("rowLastSeen").textContent = now;
+
+  // Load prefs from Firestore
+  try {
+    const snap = await getDoc(doc(db, "users", user.uid));
+    if (snap.exists()) {
+      const data = snap.data();
+      if (data.consents) {
+        if (data.consents.interactions !== undefined)
+          document.getElementById('c_interactions').checked = data.consents.interactions;
+        if (data.consents.scores !== undefined)
+          document.getElementById('c_scores').checked = data.consents.scores;
+        if (data.consents.prefs !== undefined)
+          document.getElementById('c_prefs').checked = data.consents.prefs;
+        if (data.consents.anonymous !== undefined)
+          document.getElementById('c_anon').checked = data.consents.anonymous;
+        if (data.consents.suggestions !== undefined)
+          document.getElementById('c_suggestions').checked = data.consents.suggestions;
+      }
+    }
+  } catch(e) { console.warn("Firestore:", e); }
+});
+
+// Save generic pref
+window.savePref = (key, value) => {
+  showToast("Sauvegardé", `Paramètre "${key}" mis à jour.`, "✓");
+};
+
+// Save consent to Firestore
+window.saveConsent = async (key, value) => {
+  if (!currentUser) return;
+  try {
+    await setDoc(doc(db, "users", currentUser.uid), {
+      consents: { [key]: value }
+    }, { merge: true });
+    showToast("Consentement mis à jour", value ? "Activé et enregistré sur Firebase." : "Désactivé et enregistré sur Firebase.", "🧠");
+  } catch(e) {
+    showToast("Erreur", "Impossible de sauvegarder. Réessaie.", "⚠");
+  }
+};
+
+// Copy UID
+window.copyUID = () => {
+  if (!currentUser) return;
+  navigator.clipboard.writeText(currentUser.uid)
+    .then(() => showToast("Copié !", "UID copié dans le presse-papier.", "✓"))
+    .catch(() => showToast("Erreur", "Impossible de copier.", "⚠"));
+};
+
+// Reset password
+window.resetPassword = async () => {
+  if (!currentUser) return;
+  try {
+    await sendPasswordResetEmail(auth, currentUser.email);
+    showToast("E-mail envoyé", "Vérifie ta boîte mail pour réinitialiser.", "✉");
+  } catch(e) {
+    showToast("Erreur", "Impossible d'envoyer l'e-mail.", "⚠");
+  }
+};
+
+// Logout all
+window.logoutAll = async () => {
+  await signOut(auth);
+  window.location.href = "index.html";
+};
+
+// Export data
+window.exportData = async () => {
+  if (!currentUser) return;
+  try {
+    const snap = await getDoc(doc(db, "users", currentUser.uid));
+    const data = { uid: currentUser.uid, email: currentUser.email, ...snap.data() };
+    const blob = new Blob([JSON.stringify(data, null, 2)], {type: "application/json"});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = "heavenis-data.json";
+    a.click();
+    showToast("Export réussi", "Fichier JSON téléchargé.", "✓");
+  } catch(e) {
+    showToast("Erreur", "Impossible d'exporter les données.", "⚠");
+  }
+};
+
+// Confirm reset prefs
+window.confirmReset = () => {
+  if (confirm("Réinitialiser toutes tes préférences ? Cette action est irréversible.")) {
+    showToast("Réinitialisé", "Toutes les préférences ont été remises par défaut.", "↺");
+  }
+};
+
+// Delete AI data
+window.deleteAIData = async () => {
+  if (!currentUser) return;
+  if (!confirm("Supprimer toutes tes données d'entraînement IA ? Action irréversible.")) return;
+  try {
+    await setDoc(doc(db, "users", currentUser.uid), { consents: {}, aiData: null }, { merge: true });
+    showToast("Données supprimées", "Tes données IA ont été effacées de Firebase.", "🗑");
+  } catch(e) {
+    showToast("Erreur", "Suppression impossible.", "⚠");
+  }
+};
+
+// Delete account
+window.confirmDeleteAccount = async () => {
+  if (!currentUser) return;
+  const confirm1 = confirm("⚠ Cette action est IRRÉVERSIBLE. Ton compte sera définitivement supprimé. Continuer ?");
+  if (!confirm1) return;
+  try {
+    await deleteDoc(doc(db, "users", currentUser.uid));
+    await deleteUser(currentUser);
+    window.location.href = "index.html";
+  } catch(e) {
+    showToast("Erreur", "Suppression impossible. Reconnecte-toi et réessaie.", "⚠");
+  }
+};
+
+window.logout = async () => {
+  await signOut(auth);
+  window.location.href = "index.html";
+};
+</script>
+
+<script>
+function toggleSidebar() {
+  const open = document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('overlay').classList.toggle('show', open);
+  document.body.style.overflow = open ? 'hidden' : '';
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('overlay').classList.remove('show');
+  document.body.style.overflow = '';
+}
+window.toggleSidebar = toggleSidebar;
+window.closeSidebar = closeSidebar;
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSidebar(); });
+
+// Settings nav active on scroll
+const sections = ['compte','apparence','notifications','donnees','securite','accessibilite','danger'];
+const navItems = document.querySelectorAll('.settings-nav-item');
+window.addEventListener('scroll', () => {
+  let current = 'compte';
+  sections.forEach(id => {
+    const el = document.getElementById(id);
+    if (el && window.scrollY >= el.offsetTop - 120) current = id;
+  });
+  navItems.forEach(item => {
+    item.classList.toggle('active', item.getAttribute('href') === '#' + current);
+  });
+});
+
+function selectColor(el) {
+  document.querySelectorAll('.color-opt').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  savePref('accentColor', el.dataset.color);
+}
+
+let toastTimer;
+window.showToast = function(title, msg, icon = '✦') {
+  const toast = document.getElementById('toast');
+  document.getElementById('toastTitle').textContent = title;
+  document.getElementById('toastMsg').textContent = msg;
+  document.getElementById('toastIcon').textContent = icon;
+  toast.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toast.classList.remove('show'), 3500);
+};
+</script>
+</body>
+</html>
