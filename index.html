@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Mon site Firebase</title>
+</head>
+<body>
+
+<h1>🔥 Mon site connecté</h1>
+<button onclick="login()">Se connecter</button>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+  const firebaseConfig = {
+    apiKey: "TA_CLE",
+    authDomain: "TON_PROJET.firebaseapp.com",
+    projectId: "TON_PROJET"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+
+  window.login = () => {
+    signInAnonymously(auth)
+      .then(() => alert("Connecté 🔥"))
+      .catch(err => console.error(err));
+  };
+</script>
+
+</body>
+</html>
